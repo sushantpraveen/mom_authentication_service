@@ -4,19 +4,16 @@ const UsersRoutes = require('./routes/user.routes')
 class App{
     constructor(){
         this.app = express()
-        this.routes() 
         this.middlewares()
+        this.routes() 
     }
 
     routes(){
-        this.app.use("/" , (req, res)=>{
-            res.json({msg:"You are ready"})
-        })
         this.app.use("/api" , UsersRoutes)
     }
 
     middlewares(){
-
+        this.app.use(express.json())
     }
 
     listen(port){
