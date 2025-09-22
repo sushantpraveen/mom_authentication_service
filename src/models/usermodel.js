@@ -7,18 +7,23 @@ const userschema = new mongoose.Schema({
   pincode: {
     type: Number,
   },
-  mobilenumber: {
+  mobileNumber: {
     type: Number,
   },
-  emial: {
+  email: {
     type: String,
   },
-  setpassword: {
+  password: {
     type: String,
   },
-  confrimpassword: {
+  publc_key: {
     type: String,
   },
+  role:{
+    type:String , 
+    enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"]
+  },  
+  
 });
 const user = mongoose.model("user", userschema);
 module.exports = user;
