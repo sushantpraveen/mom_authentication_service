@@ -24,6 +24,7 @@ class App{
 
         this.routes() 
         this.middlewares()
+        this.routes() 
     }
 
     routes(){
@@ -34,7 +35,7 @@ class App{
     }
 
     middlewares(){
-
+        this.app.use(express.json())
     }
 
     listen(port){
