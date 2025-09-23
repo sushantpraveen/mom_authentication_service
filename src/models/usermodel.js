@@ -16,6 +16,9 @@ const userschema = new mongoose.Schema({
   password: {
     type: String,
   },
+  otp:{
+    type:String,
+  },
   publc_key: {
     type: String,
   },
