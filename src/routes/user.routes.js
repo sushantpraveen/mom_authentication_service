@@ -3,10 +3,19 @@ const UserController = require("../controllers/UserController");
 const MailLogin = require("../controllers/nodemailer");
 const verifySession = require("../middlewares/verifySessions");
 
+
+const FingerController=require('../controllers/FingerPrintController')
+
+
 const router = express.Router();
+
 
 const Users = new UserController();
 const mailer = new MailLogin();
+
+
+//object for finger print class
+const finger= new FingerController()
 
 router.post("/mail", mailer.createMail.bind(mailer));
 router.post("/send", mailer.mail.bind(mailer));
@@ -18,4 +27,12 @@ router.delete("/delete/:id",Users.delete.bind(Users))
 router.post('/emailverify',verifySession,Users.verify.bind(Users))
 
 
-module.exports = router;
+
+//finger print authentication routes
+router.post("/register/challenge",finger.registerOptions.bind(finger))
+router.post('/verify/challenge',finger.verifyChallenge.bind(finger))
+router.post('/auth/challenge',finger.loginChallenge.bind(finger))
+router.post('/auth/verify',finger.verify.bind(finger))
+
+module.exports  = router
+

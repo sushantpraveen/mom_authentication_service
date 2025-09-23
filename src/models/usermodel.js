@@ -19,13 +19,24 @@ const userschema = new mongoose.Schema({
   otp:{
     type:String,
   },
-  publc_key: {
-    type: String,
-  },
   role:{
     type:String , 
     enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"]
-  },  
+  },   
+    publicKey: {
+    type:Buffer,
+  },
+   currentChallenge:{
+    type:String
+  },
+  counter:{
+    type:Number,
+    default:0
+  },
+  credentialID:{
+    type:Buffer
+  }
+
   
 });
 const user = mongoose.model("user", userschema);

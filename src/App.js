@@ -1,12 +1,15 @@
 const express = require("express")
+const cors=require('cors')
 const session = require("express-session");
 const UsersRoutes = require('./routes/user.routes');
 const { connectRedisClient } = require("./services/redisClient");
+
 
 class App{
     constructor(){
         this.app = express()
         this.app.use(express.json())
+        this.app.use(cors())
         this.app.use((req, res, next) => {
         console.log("Headers:", req.headers["content-type"]);
         console.log("Raw body:", req.body);
@@ -30,10 +33,12 @@ class App{
     }
 
     routes(){
-        // this.app.use("/" , (req, res)=>{
-        //     res.json({msg:"You are ready"})
-        // })
+
         this.app.use("/api" , UsersRoutes)
+
+        this.app.use("/" , (req, res)=>{
+            res.json({msg:"You are ready"})
+        })
     }
 
     middlewares(){
