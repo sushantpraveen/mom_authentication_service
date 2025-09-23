@@ -1,6 +1,7 @@
 const express = require("express")
 const session = require("express-session");
-const UsersRoutes = require('./routes/user.routes')
+const UsersRoutes = require('./routes/user.routes');
+const { connectRedisClient } = require("./services/redisClient");
 
 class App{
     constructor(){
@@ -25,6 +26,7 @@ class App{
         this.routes() 
         this.middlewares()
         this.routes() 
+        connectRedisClient()
     }
 
     routes(){

@@ -15,5 +15,7 @@ router.post("/user" ,Users.createuser.bind(Users))
 router.post("/login",Users.loginuser.bind(Users))
 router.get("/getall",Users.getall.bind(Users))
 router.delete("/delete/:id",Users.delete.bind(Users))
+router.post('/emailverify',verifySession,Users.verify.bind(Users))
+
 
 module.exports = router;
