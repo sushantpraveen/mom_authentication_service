@@ -22,7 +22,7 @@ class FingerPrintController extends BaseController{
                   const generate= await generateRegistrationOptions({
                         rpID:'localhost',
                         rpName:"mom authentication",
-                        userName:'Ojas Gambhira',
+                        userName:'vineela',
                         displayName:'master'
                 })
                 console.log("this is the current challenge",generate);               
