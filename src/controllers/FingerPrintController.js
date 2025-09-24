@@ -8,6 +8,10 @@ const {generateRegistrationOptions,
 
 class FingerPrintController extends BaseController{
       
+     expectedOrigins=[
+        'http://localhost:5173',
+        'http://localhost:5174'
+    ]
       async registerOptions(req,res){                         
                try{ 
                const {email,mobileNumber}= req.body      
@@ -23,7 +27,11 @@ class FingerPrintController extends BaseController{
                         rpID:'localhost',
                         rpName:"mom authentication",
                         userName:'Ojas Gambhira',
-                        displayName:'master'
+                        displayName:'master',
+                        authenticatorSelection:{
+                            userVerification:'preferred',
+                            authenticatorAttachment:'cross-platform'
+                        }
                 })
                 console.log("this is the current challenge",generate);               
                 user.currentChallenge=generate.challenge
@@ -31,7 +39,7 @@ class FingerPrintController extends BaseController{
                 this.success(res,generate,user,"Registration Options Generated Successfully!!!!!")
                 }
             catch(e){
-                console.log("this is the error ",e);
+                console.log("this is the error from registration options",e);
                 
                     this.error(res,500,'Internal Server Error',e)
             }
@@ -51,7 +59,7 @@ class FingerPrintController extends BaseController{
                 const challenge=user.currentChallenge
                 const verification= await verifyRegistrationResponse({
                     expectedChallenge:challenge,
-                    expectedOrigin:'http://localhost:5173',
+                    expectedOrigin:this.expectedOrigins,
                     expectedRPID:'localhost',
                     response:cred
                 })
@@ -80,7 +88,8 @@ class FingerPrintController extends BaseController{
                 const user= await users.findOne({$or:query})
                 if(!user)  this.error(res,404,"User Not Found",)
                     const options=await generateAuthenticationOptions({
-                   rpID:'localhost'
+                   rpID:'localhost',
+                   userVerification:'preferred'
                 })
                 user.currentChallenge=options.challenge
                 await user.save()
@@ -108,7 +117,7 @@ class FingerPrintController extends BaseController{
                 }
                 const result= await verifyAuthenticationResponse({
                     expectedChallenge:challenge,
-                     expectedOrigin:'http://localhost:5173',
+                     expectedOrigin:this.expectedOrigins,
                     expectedRPID:'localhost',
                     response:cred,
                     credential
