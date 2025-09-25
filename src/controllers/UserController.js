@@ -122,7 +122,7 @@ class UserController extends BaseController {
 
         console.log("This is token", token);
 
-        this.success(res, 200, "OTP verified successfully", { token });
+        this.success(res, token, "OTP verified successfully");
       } else {
         this.error(res, 400, "Invalid OTP or email");
       }
