@@ -20,7 +20,11 @@ router.post("/login",Users.loginuser.bind(Users))
 router.get("/getall",Users.getall.bind(Users))
 router.delete("/delete/:id",Users.delete.bind(Users))
 router.post('/emailverify',Users.verify.bind(Users))
-
+// Signup routes
+router.post("/signup/request-otp", Users.requestSignupOtp.bind(Users));
+router.post("/signup/verify-otp", Users.verifySignupOtp.bind(Users));
+router.post("/signup/create", Users.createUserAfterOtp.bind(Users));
+router.post("/invite", Users.inviteUser.bind(Users));
 
 
 //finger print authentication routes
