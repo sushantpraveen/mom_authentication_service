@@ -11,6 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@simplewebauthn/server": "^13.2.1",
     "bcrypt": "^6.0.0",
     "charan-products": "^1.0.1",
     "cors": "^2.8.5",
