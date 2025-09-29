@@ -43,6 +43,49 @@ class AccessController extends BaseController{
  }
 
 
+ //updateusers access control
+
+ async UpdateUsers(req,res){
+    try{
+        const {role,permissions}=req.body
+        console.log("this is the role from the body to modify the access manager",role);
+        const users=await AccessSchema.updateMany(
+            {"role":role},
+            {$addToSet :{"permissions":{$each :permissions}}}
+        )
+        if(!users) return res.status(404).json({msg:'unable to alter the data'})
+            console.log("users updated successfully",users);
+            return res.status(200).json({msg:'users updated successfully'})
+        // this.success('res',200,"updated users successfully",users)
+    }
+    catch(e){
+        console.log('this is the error cauisng to update many',e.message);       
+        return res.status(500).json({msg:'Internal Server Error'})
+    }
+ }
+
+
+ //remove users access control
+
+ async removeAccessControl(req,res){
+    try{
+     const {role,permissions}=req.body
+        console.log("this is the role from the body to modify the access manager",role);
+        const users=await AccessSchema.updateMany(
+            {"role":role},
+            {$pullAll:{'permissions':permissions}}
+        )
+         if(!users) return res.status(404).json({msg:'unable to alter the data'})
+            console.log("users updated successfully",users);
+            return res.status(200).json({msg:'users updated successfully'})
+    }
+    catch(e){
+             console.log('this is the error cauisng to update many',e.message);       
+        return res.status(500).json({msg:'Internal Server Error'})
+    }
+ }
+
+
 }
 
 
