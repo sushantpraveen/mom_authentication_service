@@ -21,7 +21,9 @@ const userschema = new mongoose.Schema({
   },
   role:{
     type:String , 
-    enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"]
+     required:true,
+    enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"],
+   
   },   
     publicKey: {
     type:Buffer,
