@@ -3,6 +3,7 @@ const cors = require("cors");
 const session = require("express-session");
 const UsersRoutes = require("./routes/user.routes");
 const { connectRedisClient } = require("./services/redisClient");
+const AccessRoutes=require('./routes/AccessRoutes')
 
 class App {
   constructor() {
@@ -41,6 +42,7 @@ class App {
 
   routes() {
     this.app.use("/api", UsersRoutes);
+    this.app.use('/access',AccessRoutes)
 
     this.app.use("/", (req, res) => {
       res.json({ msg: "You are ready" });

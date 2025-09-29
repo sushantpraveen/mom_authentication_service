@@ -35,9 +35,13 @@ const userschema = new mongoose.Schema({
   },
   credentialID:{
     type:Buffer
+  },
+  Status:{
+    type:String,
+    enum:["InActive","Active"]
   }
 
   
 });
-const user = mongoose.model("user", userschema);
+const user = mongoose.model("Members", userschema);
 module.exports = user;

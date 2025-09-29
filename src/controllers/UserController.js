@@ -15,9 +15,9 @@ class UserController extends BaseController {
   async createuser(req, res) {
     try {
       console.log("this is running...");
-      const { fullname, email, pincode, mobileNumber, password } = req.body;
+      const { fullname, email, pincode, mobileNumber, password,Status,role} = req.body;
 
-      if (!fullname || !email || !pincode || !mobileNumber || !password) {
+      if (!fullname || !email || !pincode || !mobileNumber || !password || !Status || !role) {
         this.error(res, 404, "All fields are required");
       }
       const userexisted = await user.findOne({ email });
@@ -36,7 +36,7 @@ class UserController extends BaseController {
       await newuser.save();
       this.success(res, 200, "user created successfully", newuser);
     } catch (err) {
-      this.error(res, 500, "internal server error", err);
+      this.error(res, 500, "internal server error", err.message);
     }
   }
 
@@ -52,8 +52,13 @@ async requestSignupOtp(req, res) {
 
     // Generate OTP
     this.otp = Math.floor(100000 + Math.random() * 900000);
-    await client.setEx(`signup:${email}:otp`, 300, JSON.stringify(this.otp)); // 5 minutes
+    // const redisotp= await client.setEx(`signup:${email}:otp`, 300, JSON.stringify(this.otp)); // 5 minutes
 
+
+    const redisotp= await client.set(`signup:${email},otp:`,JSON.stringify(this.otp),'EX',300)
+
+    console.log("this is the otp we are setting in the redis",redisotp,this.otp);
+    
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -64,7 +69,7 @@ async requestSignupOtp(req, res) {
     const info = await transportMail.sendMail(mailOptions);
     console.log("Signup OTP email sent:", info.response);
 
-    return this.success(res, { email }, "OTP sent successfully");
+    return this.success(res, { data:email }, "OTP sent successfully");
   } catch (err) {
     console.error("Signup OTP error:", err);
     return this.error(res, 500, "Internal server error", err);
@@ -77,7 +82,8 @@ async verifySignupOtp(req, res) {
     const { email, otp } = req.body;
     if (!email || !otp) return this.error(res, 400, "Email and OTP are required");
 
-    const redisOtp = await client.get(`signup:${email}:otp`);
+    const redisOtp = await client.get(`signup:${email},otp:`);
+    console.log('this is the error for the otp in the redis',redisOtp); 
     if (!redisOtp) return this.error(res, 400, "OTP expired or not found");
 
     const parsedOtp = JSON.parse(redisOtp);
@@ -266,6 +272,21 @@ async loginuser(req, res) {
       this.error(res, 500, "internal server error", error);
     }
   }
+
+  //update by id or edit
+  async editmembers(req,res){
+          try{
+             const id=req.params.id           
+             const users= await user.findByIdAndUpdate(id,req.body)
+             if(!users) return res.status(404).json({msg:'unable to edit the member',users})
+              console.log("this is the updated user",users);             
+              this.success(res,200,`Successfully edited the member${JSON.stringify(users)} details`)
+          }
+          catch(e){
+            this.error(res, 500, "internal server error", e.message);
+          }
+  }
+
 
   // delete user
   async delete(req, res) {
