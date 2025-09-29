@@ -25,7 +25,8 @@ class UserController extends BaseController {
       if (userexisted) {
         return this.error(res, 409, "User already existed");
       }
-
+      else{
+        
       const hashpassword = await bcrypt.hash(password, 10);
 
       const newuser = new user({
@@ -33,10 +34,14 @@ class UserController extends BaseController {
         email,
         pincode,
         mobileNumber,
+        role,
         password: hashpassword,
       });
-      await newuser.save();
+       await newuser.save();
       return this.success(res, 200, "user created successfully", newuser);
+      }
+
+     
     } catch (err) {
       this.error(res, 500, "internal server error", err.message);
     }
