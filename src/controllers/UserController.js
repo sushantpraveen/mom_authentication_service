@@ -15,10 +15,10 @@ class UserController extends BaseController {
   async createuser(req, res) {
     try {
       console.log("this is running...");
-      const { fullname, email, pincode, mobileNumber, password } = req.body;
+      const { fullname, email, pincode, mobileNumber, password,Status,role} = req.body;
 
-      if (!fullname || !email || !pincode || !mobileNumber || !password) {
-        return this.error(res, 404, "All fields are required");
+      if (!fullname || !email || !pincode || !mobileNumber || !password || !Status || !role) {
+        this.error(res, 404, "All fields are required");
       }
 
       const userexisted = await user.findOne({ email });
@@ -38,9 +38,45 @@ class UserController extends BaseController {
       await newuser.save();
       return this.success(res, 200, "user created successfully", newuser);
     } catch (err) {
-      return this.error(res, 500, "internal server error", err);
+      this.error(res, 500, "internal server error", err.message);
     }
   }
+
+  // Request OTP for signup
+async requestSignupOtp(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) return this.error(res, 400, "Email is required");
+
+    // Check user does NOT exist
+    const existUser = await user.findOne({ email });
+    if (existUser) return this.error(res, 409, "User already exists");
+
+    // Generate OTP
+    this.otp = Math.floor(100000 + Math.random() * 900000);
+    // const redisotp= await client.setEx(`signup:${email}:otp`, 300, JSON.stringify(this.otp)); // 5 minutes
+
+
+    const redisotp= await client.set(`signup:${email},otp:`,JSON.stringify(this.otp),'EX',300)
+
+    console.log("this is the otp we are setting in the redis",redisotp,this.otp);
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "OTP for mompharmacy signup",
+      text: `Your OTP for signup is ${this.otp}`,
+    };
+
+    const info = await transportMail.sendMail(mailOptions);
+    console.log("Signup OTP email sent:", info.response);
+
+    return this.success(res, { data:email }, "OTP sent successfully");
+  } catch (err) {
+    console.error("Signup OTP error:", err);
+    return this.error(res, 500, "Internal server error", err);
+  }
+}
 
   // Request OTP for signup (only if invited)
   async requestSignupOtp(req, res) {
@@ -50,6 +86,11 @@ class UserController extends BaseController {
 
       const redisInvite = await client.get(`invite:${email}`);
       if (!redisInvite) return this.error(res, 400, " Enter the same email that was invited for onboarding");
+
+
+    const redisOtp = await client.get(`signup:${email},otp:`);
+    console.log('this is the error for the otp in the redis',redisOtp); 
+    if (!redisOtp) return this.error(res, 400, "OTP expired or not found");
 
       // Check user does NOT exist already
       const existUser = await user.findOne({ email });
@@ -274,7 +315,22 @@ class UserController extends BaseController {
     }
   }
 
-  // Delete user
+  //update by id or edit
+  async editmembers(req,res){
+          try{
+             const id=req.params.id           
+             const users= await user.findByIdAndUpdate(id,req.body)
+             if(!users) return res.status(404).json({msg:'unable to edit the member',users})
+              console.log("this is the updated user",users);             
+              this.success(res,200,`Successfully edited the member${JSON.stringify(users)} details`)
+          }
+          catch(e){
+            this.error(res, 500, "internal server error", e.message);
+          }
+  }
+
+
+  // delete user
   async delete(req, res) {
     const { id } = req.params;
     try {
