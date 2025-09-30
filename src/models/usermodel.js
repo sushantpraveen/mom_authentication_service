@@ -23,7 +23,6 @@ const userschema = new mongoose.Schema({
     type:String , 
      required:true,
     enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"],
-   
   },   
     publicKey: {
     type:Buffer,
