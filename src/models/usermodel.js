@@ -21,7 +21,9 @@ const userschema = new mongoose.Schema({
   },
   role:{
     type:String , 
-    enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"]
+     required:true,
+    enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"],
+   
   },   
     publicKey: {
     type:Buffer,
@@ -35,9 +37,13 @@ const userschema = new mongoose.Schema({
   },
   credentialID:{
     type:Buffer
+  },
+  Status:{
+    type:String,
+    enum:["InActive","Active"]
   }
 
   
 });
-const user = mongoose.model("user", userschema);
+const user = mongoose.model("Members", userschema);
 module.exports = user;
