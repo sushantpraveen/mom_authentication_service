@@ -4,7 +4,7 @@ const transportMail = require("../utils/nodemailer");
 const BaseController = require("./BaseController");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const toast=require('react-hot-toast')
+const toast = require("react-hot-toast");
 class UserController extends BaseController {
   constructor() {
     super();
@@ -15,73 +15,87 @@ class UserController extends BaseController {
   async createuser(req, res) {
     try {
       console.log("this is running...");
-      const { fullname, email, pincode, mobileNumber, password,Status,role} = req.body;
+      const { fullname, email, pincode, mobileNumber, password, Status, role } =
+        req.body;
 
-      if (!fullname || !email || !pincode || !mobileNumber || !password || !Status || !role) {
+      if (
+        !fullname ||
+        !email ||
+        !pincode ||
+        !mobileNumber ||
+        !password ||
+        !Status ||
+        !role
+      ) {
         this.error(res, 404, "All fields are required");
       }
 
       const userexisted = await user.findOne({ email });
       if (userexisted) {
         return this.error(res, 409, "User already existed");
-      }
-      else{
-        
-      const hashpassword = await bcrypt.hash(password, 10);
+      } else {
+        const hashpassword = await bcrypt.hash(password, 10);
 
-      const newuser = new user({
-        fullname,
-        email,
-        pincode,
-        mobileNumber,
-        role,
-        password: hashpassword,
-      });
-       await newuser.save();
-      return this.success(res, 200, "user created successfully", newuser);
+        const newuser = new user({
+          fullname,
+          email,
+          pincode,
+          mobileNumber,
+          role,
+          Status,
+          password: hashpassword,
+        });
+        await newuser.save();
+        return this.success(res, 200, "user created successfully", newuser);
       }
-
-     
     } catch (err) {
       this.error(res, 500, "internal server error", err.message);
     }
   }
 
   // Request OTP for signup
-async requestSignupOtp(req, res) {
-  try {
-    const { email } = req.body;
-    if (!email) return this.error(res, 400, "Email is required");
+  async requestSignupOtp(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) return this.error(res, 400, "Email is required");
 
-    // Check user does NOT exist
-    const existUser = await user.findOne({ email });
-    if (existUser) return this.error(res, 409, "User already exists");
+      // Check user does NOT exist
+      const existUser = await user.findOne({ email });
+      if (existUser) return this.error(res, 409, "User already exists");
 
-    // Generate OTP
-    this.otp = Math.floor(100000 + Math.random() * 900000);
-    // const redisotp= await client.setEx(`signup:${email}:otp`, 300, JSON.stringify(this.otp)); // 5 minutes
+      // Generate OTP
+      this.otp = Math.floor(100000 + Math.random() * 900000);
+      // const redisotp= await client.setEx(`signup:${email}:otp`, 300, JSON.stringify(this.otp)); // 5 minutes
 
+      const redisotp = await client.set(
+        `signup:${email},otp:`,
+        JSON.stringify(this.otp),
+        "EX",
+        300
+      );
 
-    const redisotp= await client.set(`signup:${email},otp:`,JSON.stringify(this.otp),'EX',300)
+      console.log(
+        "this is the otp we are setting in the redis",
+        redisotp,
+        this.otp
+      );
 
-    console.log("this is the otp we are setting in the redis",redisotp,this.otp);
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "OTP for mompharmacy signup",
-      text: `Your OTP for signup is ${this.otp}`,
-    };
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "OTP for mompharmacy signup",
+        text: `Your OTP for signup is ${this.otp}`,
+      };
 
-    const info = await transportMail.sendMail(mailOptions);
-    console.log("Signup OTP email sent:", info.response);
+      const info = await transportMail.sendMail(mailOptions);
+      console.log("Signup OTP email sent:", info.response);
 
-    return this.success(res, { data:email }, "OTP sent successfully");
-  } catch (err) {
-    console.error("Signup OTP error:", err);
-    return this.error(res, 500, "Internal server error", err);
+      return this.success(res, { data: email }, "OTP sent successfully");
+    } catch (err) {
+      console.error("Signup OTP error:", err);
+      return this.error(res, 500, "Internal server error", err);
+    }
   }
-}
 
   // Request OTP for signup (only if invited)
   async requestSignupOtp(req, res) {
@@ -90,18 +104,22 @@ async requestSignupOtp(req, res) {
       if (!email) return this.error(res, 400, "Email is required");
 
       const redisInvite = await client.get(`invite:${email}`);
-      if (!redisInvite) return this.error(res, 400, " Enter the same email that was invited for onboarding");
+      if (!redisInvite)
+        return this.error(
+          res,
+          400,
+          " Enter the same email that was invited for onboarding"
+        );
 
-
-    const redisOtp = await client.get(`signup:${email},otp:`);
-    console.log('this is the error for the otp in the redis',redisOtp); 
-    if (!redisOtp) return this.error(res, 400, "OTP expired or not found");
+      const redisOtp = await client.get(`signup:${email},otp:`);
+      console.log("this is the error for the otp in the redis", redisOtp);
+      if (!redisOtp) return this.error(res, 400, "OTP expired or not found");
 
       // Check user does NOT exist already
       const existUser = await user.findOne({ email });
       if (existUser) return this.error(res, 409, "User already exists");
 
-      // Generate OTP
+      // Generate OTP v
       this.otp = Math.floor(100000 + Math.random() * 900000);
       await client.setEx(`signup:${email}:otp`, 300, JSON.stringify(this.otp)); // 5 minutes
 
@@ -126,7 +144,8 @@ async requestSignupOtp(req, res) {
   async verifySignupOtp(req, res) {
     try {
       const { email, otp } = req.body;
-      if (!email || !otp) return this.error(res, 400, "Email and OTP are required");
+      if (!email || !otp)
+        return this.error(res, 400, "Email and OTP are required");
 
       const redisOtp = await client.get(`signup:${email}:otp`);
       if (!redisOtp) return this.error(res, 400, "OTP expired or not found");
@@ -321,19 +340,50 @@ async requestSignupOtp(req, res) {
   }
 
   //update by id or edit
-  async editmembers(req,res){
-          try{
-             const id=req.params.id           
-             const users= await user.findByIdAndUpdate(id,req.body)
-             if(!users) return res.status(404).json({msg:'unable to edit the member',users})
-              console.log("this is the updated user",users);             
-              this.success(res,200,`Successfully edited the member${JSON.stringify(users)} details`)
-          }
-          catch(e){
-            this.error(res, 500, "internal server error", e.message);
-          }
+  async editmembers(req, res) {
+    try {
+      const id = req.params.id;
+      const users = await user.findByIdAndUpdate(id, req.body);
+      if (!users)
+        return res
+          .status(404)
+          .json({ msg: "unable to edit the member", users });
+      console.log("this is the updated user", users);
+      this.success(
+        res,
+        200,
+        `Successfully edited the member${JSON.stringify(users)} details`
+      );
+    } catch (e) {
+      this.error(res, 500, "internal server error", e.message);
+    }
   }
 
+  //Search funnctinality
+
+  async searchmember(req, res) {
+    try {
+      const { search, ...filters } = req.query;
+      let query = {};
+      if (search) {
+        query.$or = [
+          { role: { $regex: search, $options: "i" } },
+          { fullname: { $regex: search, $options: "i" } },
+        ];
+      }
+      if (filters.supprotType) {
+        query.supportType = filters.supportType;
+      }
+      const allmembers = await user.find(query);
+
+      if (!allmembers) {
+        return this.error(res, 400, "Unable to fetch the members ");
+      }
+      return this.error(res, 200, { allmembers });
+    } catch (e) {
+      this.error(res, 500, "internal server error", e.message);
+    }
+  }
 
   // delete user
   async delete(req, res) {
