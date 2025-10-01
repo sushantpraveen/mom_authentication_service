@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const user = require("../models/usermodel");
 const { client } = require("../services/redisClient");
 const transportMail = require("../utils/nodemailer");
@@ -329,15 +330,72 @@ class UserController extends BaseController {
     }
   }
 
-  // Get all users
+  // Get all users with infinite scrolling
   async getall(req, res) {
-    try {
-      const allusers = await user.find({});
-      return this.success(res, 200, { allusers });
-    } catch (error) {
-      return this.error(res, 500, "internal server error", error);
+  try {
+    const limit = Math.min(100, parseInt(req.query.limit, 10) || 10);
+    const rawCursor = req.query.cursor;
+
+    // to avoid issues with "null", "undefined" or empty string
+    const cursor = (rawCursor === undefined || rawCursor === null || String(rawCursor).trim() === '' || String(rawCursor) === 'null' || String(rawCursor) === 'undefined')
+      ? null
+      : String(rawCursor);
+
+    // console.log('[getall] limit:', limit, 'rawCursor:', rawCursor, 'normalized cursor:', cursor);
+
+    const query = {};
+
+    // If a cursor exists verify it's a valid ObjectId
+    if (cursor) {
+      const ok = mongoose.Types.ObjectId.isValid(cursor);
+      console.log('cursor validity check:', ok, 'cursor:', cursor);
+      if (!ok) {
+        return this.error(res, 400, 'Invalid cursor value');
+      }
+
+      // ObjectId conversion
+      try {
+        const cursorObj = new mongoose.Types.ObjectId(cursor);
+        query._id = { $gt: cursorObj }; // matches your ascending sort
+      } catch (err) {
+        console.error('[getall] error converting cursor to ObjectId:', err);
+        return this.error(res, 400, 'Invalid cursor value (conversion failed)');
+      }
     }
+
+    console.log('[getall] final query object:', JSON.stringify(query));
+
+    // Fetch limit + 1
+    const allusers = await user.find(query)
+      .sort({ _id: 1 }) // ascending; matches $gt above
+      .limit(limit + 1)
+      .lean();
+
+    console.log('[getall] fetched count:', allusers.length);
+
+    let hasMore = false;
+    let nextCursor = null;
+    let pageUsers = allusers;
+
+    if (allusers.length > limit) {
+      hasMore = true;
+      // pop the extra to return exactly `limit`
+      pageUsers = allusers.slice(0, limit);
+      const extraUser = allusers[limit]; // extra fetched user
+      nextCursor = extraUser?._id?.toString() ?? null;
+    } else if (allusers.length > 0) {
+      nextCursor = allusers[allusers.length - 1]._id.toString();
+    }
+
+    // success response
+    return this.success(res, 200, { allusers: pageUsers, hasMore, nextCursor });
+  } catch (error) {
+    // log full stack for debugging
+    console.error('[getall] unexpected error:', error && error.stack ? error.stack : error);
+    return this.error(res, 500, "internal server error", error);
   }
+}
+
 
   //update by id or edit
   async editmembers(req, res) {
