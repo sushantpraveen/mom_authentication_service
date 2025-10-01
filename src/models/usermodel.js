@@ -39,6 +39,7 @@ const userschema = new mongoose.Schema({
   },
   Status:{
     type:String,
+     required:true,
     enum:["InActive","Active"]
   }
 
