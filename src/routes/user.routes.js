@@ -21,6 +21,8 @@ router.get("/getall",Users.getall.bind(Users))
 router.delete("/delete/:id",Users.delete.bind(Users))
 router.post('/emailverify',Users.verify.bind(Users))
 router.post('/update/:id',Users.editmembers.bind(Users))
+router.get('/search',Users.searchmember.bind(Users))
+
 // Signup routes
 router.post("/signup/request-otp", Users.requestSignupOtp.bind(Users));
 router.post("/signup/verify-otp", Users.verifySignupOtp.bind(Users));

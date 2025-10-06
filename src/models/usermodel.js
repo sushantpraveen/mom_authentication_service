@@ -24,9 +24,15 @@ const userschema = new mongoose.Schema({
     required: true,
     enum: ["Admin", "Store Manager", "Warehouse Manager", "Executive"],
   },
+
   publicKey: {
     type: Buffer,
-  },
+  role:{
+    type:String , 
+     required:true,
+    enum:["Admin" , "Store Manager", "Warehouse Manager" ,"Executive"],
+  },   
+
   currentChallenge: {
     type: String,
   },
@@ -44,6 +50,8 @@ const userschema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetTokenExpires: Date,
+
+ 
 });
 
 //  create a instance for reset password
