@@ -16,20 +16,11 @@ class UserController extends BaseController {
   async createuser(req, res) {
     try {
       console.log("this is running...");
-      const { fullname, email, pincode, mobileNumber, password, Status, role } =
-        req.body;
+      const { fullname, email, pincode, mobileNumber, password,Status,role} = req.body;
 
-      if (
-        !fullname ||
-        !email ||
-        !pincode ||
-        !mobileNumber ||
-        !password ||
-        !Status ||
-        !role
-      ) {
-        this.error(res, 404, "All fields are required");
-      }
+      if (!fullname || !email || !pincode || !mobileNumber || !password || !Status || !role) {
+        return this.error(res, 404, "All fields are required");
+
 
       const userexisted = await user.findOne({ email });
       if (userexisted) {
