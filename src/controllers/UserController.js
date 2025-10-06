@@ -18,7 +18,7 @@ class UserController extends BaseController {
       const { fullname, email, pincode, mobileNumber, password,Status,role} = req.body;
 
       if (!fullname || !email || !pincode || !mobileNumber || !password || !Status || !role) {
-        this.error(res, 404, "All fields are required");
+        return this.error(res, 404, "All fields are required");
       }
 
       const userexisted = await user.findOne({ email });

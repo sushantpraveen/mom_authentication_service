@@ -1,8 +1,8 @@
 const express = require("express");
 const UserController = require("../controllers/UserController");
 const verifySession = require("../middlewares/verifySessions");
-
-
+const ForgotPassword = require("../controllers/ForgotPassword");
+const ResetPassword = require("../controllers/ResetPassword");
 const FingerController=require('../controllers/FingerPrintController')
 
 
@@ -33,6 +33,12 @@ router.post("/register/challenge",finger.registerOptions.bind(finger))
 router.post('/verify/challenge',finger.verifyChallenge.bind(finger))
 router.post('/auth/challenge',finger.loginChallenge.bind(finger))
 router.post('/auth/verify',finger.verify.bind(finger))
+
+
+//Password Reset
+router.post("/forgot-password", ForgotPassword);
+router.post("/reset-password", ResetPassword);
+
 
 module.exports  = router
 

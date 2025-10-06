@@ -64,9 +64,7 @@ class AccessController extends BaseController{
     }
  }
 
-
  //remove users access control
-
  async removeAccessControl(req,res){
     try{
      const {role,permissions}=req.body
